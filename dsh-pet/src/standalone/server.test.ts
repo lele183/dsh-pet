@@ -353,6 +353,7 @@ describe('HTTP boundary protects every route and settings', () => {
       const shell = await fetch(base + '/standalone-ai/');
       assert.equal(shell.status, 200);
       assert.match(shell.headers.get('content-security-policy') ?? '', /default-src 'none'/);
+      assert.match(shell.headers.get('content-security-policy') ?? '', /font-src 'self'/);
       assert.doesNotMatch(await shell.text(), new RegExp(security.token));
       assert.equal((await fetch(base + '/standalone-ai/settings')).status, 403);
       const read = await fetch(base + '/standalone-ai/settings', { headers });

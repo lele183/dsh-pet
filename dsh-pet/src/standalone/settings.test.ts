@@ -52,6 +52,10 @@ test('settings shell is accessible, self contained, and never saves browser secr
   assert.match(settingsPage, /automaticWhispers/);
   assert.match(settingsPage, /费用/);
   assert.match(settingsPage, /min="60"/);
+  assert.match(settingsPage, /外观与字体/);
+  assert.match(settingsPage, /for="fontSize"/);
+  assert.match(settingsPage, /id="font-controls" disabled/);
+  assert.match(settingsPage, /id="font-preview-text"/);
   assert.match(settingsScript, /history\.replaceState/);
   assert.match(settingsScript, /X-DSH-Pet-Token/);
   assert.doesNotMatch(settingsScript, /localStorage|sessionStorage|document\.cookie|innerHTML/);
@@ -67,6 +71,7 @@ test('settings browser script strips fragment, keeps key write-only and explicit
     disabled: boolean;
     textContent: string;
     dataset: Record<string, string>;
+    style: Record<string, string>;
     listeners: Record<string, (event?: unknown) => Promise<void> | void>;
     addEventListener: (name: string, fn: (event?: unknown) => Promise<void> | void) => void;
     reportValidity: () => boolean;
@@ -80,6 +85,7 @@ test('settings browser script strips fragment, keeps key write-only and explicit
         disabled: false,
         textContent: '',
         dataset: {},
+        style: {},
         listeners: {},
         addEventListener(name, fn) {
           this.listeners[name] = fn;
@@ -105,6 +111,14 @@ test('settings browser script strips fragment, keeps key write-only and explicit
       return {
         ok: true,
         json: async () => ({
+          ...(url === '/dsh-pet-7340/config'
+            ? {
+                main: {
+                  font: { family: 'yahei', size: 28, followPet: false },
+                  pets: [{ id: 'main', size: 340, display: 'desktop' }],
+                },
+              }
+            : {}),
           protocol: 'anthropic',
           baseUrl: 'https://example.test',
           model: 'x',
@@ -124,19 +138,22 @@ test('settings browser script strips fragment, keeps key write-only and explicit
   element('apiKey').value = 'write-only-fake-key';
   await element('settings').listeners.submit({ preventDefault() {} });
   assert.equal(element('apiKey').value, '');
-  assert.equal(JSON.parse(requests[1].options.body ?? '{}').apiKey, 'write-only-fake-key');
+  const aiWrites = () =>
+    requests.filter(({ url, options }) => url === '/standalone-ai/settings' && options.method === 'POST');
+  assert.equal(JSON.parse(aiWrites()[0].options.body ?? '{}').apiKey, 'write-only-fake-key');
   element('clearApiKey').checked = true;
   element('clearApiKey').listeners.change();
   assert.equal(element('enabled').checked, false);
   assert.equal(element('apiKey').disabled, true);
   await element('settings').listeners.submit({ preventDefault() {} });
-  assert.equal(JSON.parse(requests[2].options.body ?? '{}').clearApiKey, true);
-  assert.equal(JSON.parse(requests[2].options.body ?? '{}').enabled, false);
+  assert.equal(JSON.parse(aiWrites()[1].options.body ?? '{}').clearApiKey, true);
+  assert.equal(JSON.parse(aiWrites()[1].options.body ?? '{}').enabled, false);
   assert.equal(element('apiKey').disabled, false);
   assert.ok(
     requests.every(
       ({ url, options }) =>
-        url === '/standalone-ai/settings' && options.headers['X-DSH-Pet-Token'] === 'process-capability',
+        ['/standalone-ai/settings', '/dsh-pet-7340/config'].includes(url) &&
+        options.headers['X-DSH-Pet-Token'] === 'process-capability',
     ),
   );
 });

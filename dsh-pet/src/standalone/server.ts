@@ -47,7 +47,7 @@ function sendAsset(res: ServerResponse, body: string, type: string): void {
     'content-type': `${type}; charset=utf-8`,
     'content-length': Buffer.byteLength(body),
     'content-security-policy':
-      "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
     'x-frame-options': 'DENY',
   });
   res.end(body);

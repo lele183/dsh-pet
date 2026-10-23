@@ -19,6 +19,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\magpie\SETUP-MAGPIE-PET.ps
 2. 双击 `START-MAGPIE-PET.cmd`，宠物出现在主屏幕右下角。
 3. 右键宠物：
    - **对话**：直接通过 Magpie 与宠物聊天。
+   - **打开网站 → 外观与字体**：选择字体、调整字号和缩放，预览后点击“保存外观”立即应用。
    - **更多 → Magpie → 查看 Magpie 额度**：展示 Magpie 缓存的额度百分比及读取时间。
    - **更多 → Magpie → 查看 Magpie 连接**：展示网关地址和当前聊天模型。
 4. 双击 `STOP-MAGPIE-PET.cmd` 停止桌宠及适配器。
@@ -62,8 +63,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\magpie\SETUP-MAGPIE-PET.ps
 上游会把聊天、工作状态和额度提示的正文缩放到基础字号的约 75%，因此实际正文约为
 21px；340px 宠物原先约为 12px。悬浮提示约为 16px，对话输入窗沿用上游自己的字号。
 
-需要再次更换字体或字号时，停止桌宠，在 `data/dsh-pet/main-config.jsonc` 顶层调整
-以下完整字段，再重新启动：
+更换字体或字号时，右键宠物选择 **打开网站**，在“桌宠 AI 设置”页的
+**外观与字体**区域调整字体、基础字号和“字号随宠物大小缩放”。
+预览会显示当前宠物尺寸下的实际气泡字号，点击 **保存外观** 后立即应用，无需手动重启。
+外观和 AI 配置可分别保存，调整字体不会覆盖页面里尚未保存的模型或密钥输入。
+
+也可以在 `data/dsh-pet/main-config.jsonc` 顶层手动调整以下完整字段后，
+在桌宠右键菜单里选择 **重载配置**：
 
 ```json
 "font": {
@@ -111,6 +117,10 @@ npm test
   并发聚合、额度缓存、桌宠锁和菜单事件响应格式。
 - 2 项 Chromium 界面回归测试通过，覆盖大字体、多行气泡高度、滚动到底、
   短气泡收缩，以及隐藏后释放输入区域。
+- 7 项独立设置页界面测试通过，覆盖外观保存与重新读取、字体和缩放预览、数值校验、
+  失败重试、保留 AI 编辑内容，以及桌面与手机宽度布局。
+- 已在本机运行中的设置页保存字体和字号，确认原生桌宠自动重载并更新气泡；
+  恢复原设置后，宠物与 AI 配置以及页面里未保存的 AI 输入均保留。
 - 已通过真实桌宠聊天接口从 `group/cheap-first` 收到非空回复。
 - 已在原生 Windows 透明窗口看到宠物、Magpie 工作气泡，
   并实际点击“查看 Magpie 额度”看到缓存额度气泡。
@@ -136,7 +146,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\SETUP-MAGPIE-PET.ps1
 
 ```powershell
 npx playwright install chromium
-node --test scripts/tests/desktop-bubble.test.mjs
+node --test scripts/tests/desktop-bubble.test.mjs scripts/tests/standalone-settings.test.mjs
 ```
 
 `data/`、`logs/`、依赖、构建产物和本机验证截图均不提交到 Git。
