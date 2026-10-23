@@ -174,6 +174,7 @@ class PetSprite {
     const fontPx = S.resolveFontPx(this.font, this.size);
     this.el.style.setProperty('--dsh-pet-font-bubble', fontPx.bubble + 'px');
     this.el.style.setProperty('--dsh-pet-font-tip', fontPx.tip + 'px');
+    this.el.style.setProperty('--dsh-pet-bubble-space', this.margin.t + this.size * S.BUBBLE_OVERLAP_RATIO - 8 + 'px');
     const stage = document.createElement('div');
     stage.className = 'pet-stage';
     stage.style.transform = 'translateY(' + this.bottomPad + 'px)';
@@ -1416,7 +1417,13 @@ class PetSprite {
   inputBusy() {
     // 可点的余额气泡是第四个来源：它同样长在窗口里、同样靠窗口级 click 触发，而它悬在宠物头顶的
     // 余量区——那一块平时是穿透的，正需要借 busy + 控件矩形把它"圈"出来（见 syncInputRegions）。
-    return this.dragState.active || this.menuOpen || this.chatOpen || this.balanceClickable();
+    return (
+      this.dragState.active ||
+      this.menuOpen ||
+      this.chatOpen ||
+      this.balanceClickable() ||
+      this.bubble.classList.contains('is-scrollable')
+    );
   }
 
   /**
@@ -1447,7 +1454,11 @@ class PetSprite {
     const rects = [];
     // 控件矩形 = 主进程允许接收点击的区域（矩形外的余量区继续穿透）。
     // .pet-bubble.is-clickable 是余额气泡的展开态：它悬在宠物头顶的余量区，不登记就点不到。
-    const controls = [...document.querySelectorAll('.dsh-pet-menu-column, .dsh-pet-chat, .pet-bubble.is-clickable')];
+    const controls = [
+      ...document.querySelectorAll(
+        '.dsh-pet-menu-column, .dsh-pet-chat, .pet-bubble.is-clickable, .pet-bubble.is-scrollable',
+      ),
+    ];
     for (const el of this.inputRegionElements) {
       if (!controls.includes(el)) {
         this.inputRegionResize.unobserve(el);
@@ -1902,23 +1913,33 @@ class PetSprite {
     if (slot === 'none') {
       // 三者都没有可显示的内容：隐藏（不占位，也就不会挡住任何一层）
       this.bubble.classList.remove('is-on');
+      this.bubble.classList.remove('is-scrollable');
       window.__dshPetDebug.lastBubbleTitle = '';
       this.syncInputBusy(); // 气泡没了 → 撤销它的控件矩形与 busy 标记（否则整窗还留着可点区域）
       return;
     }
     this.bubble.innerHTML = '';
+    // Keep the bubble inside its transparent window; long replies remain readable by scrolling.
+    const content = document.createElement('div');
+    content.className = 'pet-bub-content';
+    this.bubble.appendChild(content);
+    const syncOverflow = () => {
+      this.bubble.classList.toggle('is-scrollable', content.scrollHeight > content.clientHeight);
+      this.syncInputBusy();
+    };
+    content.addEventListener('load', syncOverflow, true);
     if (slot === 'work') {
       const line = document.createElement('div');
       line.className = 'pet-bub-row';
       line.textContent = this.workText;
-      this.bubble.appendChild(line);
+      content.appendChild(line);
     } else if (slot === 'whisper') {
       // 配图（shared 生成的 <img> + 共用样式）：先看图再读话，符合"配图"的阅读顺序
-      if (whisperImg) this.bubble.appendChild(whisperImg);
+      if (whisperImg) content.appendChild(whisperImg);
       const line = document.createElement('div');
       line.className = 'pet-bub-row';
       line.textContent = this.whisperView[0]?.text ?? '';
-      this.bubble.appendChild(line);
+      content.appendChild(line);
     } else {
       // 展开态的行在这里现算：renderBubble 是只读渲染路径，不缓存（余额每轮都在变，缓存反而要同步失效）
       const rows =
@@ -1936,7 +1957,7 @@ class PetSprite {
           span.textContent = r.text;
           line.appendChild(span);
         }
-        this.bubble.appendChild(line);
+        content.appendChild(line);
       } else {
         for (const r of rows) {
           // 展开态一行 = 一个窗口：窗口名 + 进度条 + 已用百分比 + 重置倒计时（四段 flex 同行，
@@ -1960,7 +1981,7 @@ class PetSprite {
             reset.className = 'pet-bub-quota-reset';
             reset.textContent = r.resetText;
             row.append(label, bar, used, reset);
-            this.bubble.appendChild(row);
+            content.appendChild(row);
             continue;
           }
           const div = document.createElement('div');
@@ -1968,7 +1989,7 @@ class PetSprite {
           else if (r.role === 'sub') div.className = 'pet-bub-row pet-bub-sub';
           else div.className = 'pet-bub-row';
           div.textContent = r.text;
-          this.bubble.appendChild(div);
+          content.appendChild(div);
         }
       }
     }
@@ -1976,6 +1997,6 @@ class PetSprite {
     window.__dshPetDebug.lastBubbleTitle = this.bubble.textContent.slice(0, 60);
     // 气泡内容/尺寸变了 → 重报控件矩形（可点的余额气泡要靠它拿点击），并同步 busy 标记。
     // 这里是所有显隐/换内容的汇聚点，放在这里就不会漏掉任何一条路径。
-    this.syncInputBusy();
+    syncOverflow();
   }
 }

@@ -1,0 +1,10 @@
+data/
+logs/
+node_modules/
+upstream/
+*.log
+preview.jpg
+verification.json
+.env
+.env.*
+!.env.example

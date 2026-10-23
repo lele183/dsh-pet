@@ -128,6 +128,17 @@
       .pet-bubble.is-on {
         opacity: 1;
       }
+      .pet-bub-content {
+        max-height: max(1em, calc(var(--dsh-pet-bubble-space, 60vh) - var(--f) * 0.967));
+        overflow-y: auto;
+        scrollbar-width: thin;
+      }
+      .pet-bubble.is-scrollable {
+        pointer-events: auto;
+      }
+      .pet-bubble.is-whisper .pet-bub-row {
+        white-space: pre-line;
+      }
       /* 碎碎念变体：与浏览器 overlay 一致 —— 字号缩到余额气泡的 0.75、宽度下限更窄（0.10 → 2.1978），
          上限与余额气泡相同；宽度取宽/折行规则继承 .pet-bubble，高度随行数自然增长 */
       .pet-bubble.is-whisper {

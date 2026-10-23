@@ -1,0 +1,9 @@
+{
+  "gateway": "http://127.0.0.1:3425",
+  "model": "group/cheap-first",
+  "petPort": 4380,
+  "pollMs": 1000,
+  "quotaPollMs": 60000,
+  "requestTimeoutMs": 3000,
+  "chatTimeoutMs": 60000
+}

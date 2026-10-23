@@ -1,0 +1,24 @@
+{
+  "name": "dsh-pet-magpie-companion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone dsh-pet connected directly to the local Magpie gateway.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lele183/dsh-pet.git",
+    "directory": "magpie"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "start": "node app.mjs",
+    "status": "node app.mjs status",
+    "stop": "node app.mjs stop",
+    "models": "node app.mjs models",
+    "quota": "node app.mjs quota",
+    "test": "node --test test/*.test.mjs"
+  }
+}

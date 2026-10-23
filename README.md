@@ -1,5 +1,21 @@
 # dsh-pet 🐾
 
+## 本 fork：Magpie 直连桌宠
+
+本仓库增加了 Windows 独立启动器：直接连接本机 Magpie，支持宠物聊天、网关工作状态
+和缓存额度气泡。默认使用微软雅黑，固定基础字号 28（提示正文约 21px），不随宠物缩小。
+
+安装 Git、Node.js 22.12.0+ 并克隆本仓库后，在仓库根目录执行：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\magpie\SETUP-MAGPIE-PET.ps1
+```
+
+保持 Magpie 运行，双击 `magpie/START-MAGPIE-PET.cmd` 即可启动。
+双击 `magpie/STOP-MAGPIE-PET.cmd` 停止。[完整使用与字体配置说明](magpie/README.md)。
+
+以下保留原项目的介绍与使用方式。
+
 <p align="center">
   <a href="https://www.npmjs.com/package/dsh-pet"><img alt="npm version" src="https://img.shields.io/npm/v/dsh-pet?label=npm&color=blue"></a>
   <a href="https://www.npmjs.com/package/dsh-pet"><img alt="npm monthly downloads" src="https://img.shields.io/npm/dm/dsh-pet?label=%E6%9C%88%E4%B8%8B%E8%BD%BD&color=brightgreen"></a>
