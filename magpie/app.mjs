@@ -10,6 +10,7 @@ import {
   ActivityMonitor, CONNECTION_MENU, MagpieClient, OWNER, PetClient, QUOTA_MENU,
   loopbackUrl, quotaSummary, requestJson,
 } from './src/integration.mjs';
+import { isProcessRunning } from './src/process-state.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const DATA = join(ROOT, 'data');
@@ -55,11 +56,7 @@ function acquireLock() {
   } catch (error) {
     if (error.code !== 'EEXIST') throw error;
     const previous = JSON.parse(readFileSync(LOCK, 'utf8'));
-    let alive = true;
-    try { process.kill(previous.pid, 0); } catch (cause) {
-      if (cause.code === 'ESRCH') alive = false;
-      else throw cause;
-    }
+    const alive = isProcessRunning(previous.pid);
     if (alive) throw new Error('This Magpie pet is already running. Use STOP-MAGPIE-PET.cmd first.');
     unlinkSync(LOCK);
     return acquireLock();

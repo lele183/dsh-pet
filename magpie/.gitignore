@@ -3,6 +3,7 @@ logs/
 node_modules/
 upstream/
 *.log
+*.lnk
 preview.jpg
 verification.json
 .env
